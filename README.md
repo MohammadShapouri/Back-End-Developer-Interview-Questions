@@ -284,7 +284,7 @@ Why are global and static objects evil? Can you show it with a code example?
 * Because any part of the program can modify the global state at any time, it’s difficult to know what the current value is.
 * Breaks the Dependency Inversion Principle. Your code ends up depending on concrete global objects instead of abstract interfaces.
 #### EXAMPLE:
-* Instead of global logger for methods of a class. define and pass it during creating class instance.
+* Instead of global logger for methods of a class, define and pass it during creating class instance.
 
 #### Inversion of Control
 Tell me about Inversion of Control and how it improves the design of code.<br/>
