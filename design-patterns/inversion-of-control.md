@@ -154,3 +154,9 @@ They are all related, but in fact separate.
 For some the Hollywood Principle (or Law) is just a synonym of Inversion of Control; some others see subtle differences. See  [Confusion between Inversion of Control and Hollywood Principle](https://stackoverflow.com/questions/43786221/confusion-between-inversion-of-control-and-hollywood-principle).
 
 In this context, another related topic is the difference between libraries and frameworks, as it is stated that frameworks follow the Hollywood Principle (see [What is the difference between a framework and a library?](https://stackoverflow.com/questions/148747/what-is-the-difference-between-a-framework-and-a-library)).
+
+#### Hollywood Principle
+ * "Don’t call us, we’ll call you."
+ * Lower-level components shouldn’t control the flow of the program — instead, higher-level frameworks or systems call them when needed.
+ * You don’t call the framework; The framework calls your code at the right time.
+ * Your code doesn’t drive the flow — it provides hooks, callbacks, or implementations that a framework will call.
