@@ -278,12 +278,12 @@ Feel free to open a [Discussion](https://github.com/arialdomartini/Back-End-Deve
 ### [[↑]](#toc) <a name='patterns'>Questions about Design Patterns:</a>
 #### Globals Are Evil
 Why are global and static objects evil? Can you show it with a code example?
-ANSWER:
+#### ANSWER:
 * Creates implicit coupling between parts of the code and functions or classes that use it depend on it, but you can’t see that from their interface.
 * Tests can affect each other — you can’t easily reset or isolate behavior.
 * Because any part of the program can modify the global state at any time, it’s difficult to know what the current value is.
 * Breaks the Dependency Inversion Principle. Your code ends up depending on concrete global objects instead of abstract interfaces.
-EXAMPLE:
+#### EXAMPLE:
 * Instead of global logger for methods of a class. define and pass it during creating class instance.
 
 #### Inversion of Control
