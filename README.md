@@ -307,7 +307,7 @@ logger = Logger()
 user_service = UserService(logger)
 user_service.create_user("Alice")
 ```
-<br/> instead of <br/>
+instead of <br/>
 ```python
 # global_logger.py
 import logging
@@ -359,7 +359,7 @@ email_service = EmailService()
 controller = UserController(email_service)
 controller.register_user("Alice")
 ```
-<br/> instead of <br/>
+instead of <br/>
 ```python
 class EmailService:
     def send(self, message):
