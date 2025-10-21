@@ -278,105 +278,118 @@ Feel free to open a [Discussion](https://github.com/arialdomartini/Back-End-Deve
 ### [[↑]](#toc) <a name='patterns'>Questions about Design Patterns:</a>
 #### Globals Are Evil
 Why are global and static objects evil? Can you show it with a code example?
-#### ANSWER:
-* Creates implicit coupling between parts of the code and functions or classes that use it depend on it, but you can’t see that from their interface.
-* Tests can affect each other — you can’t easily reset or isolate behavior.
-* Because any part of the program can modify the global state at any time, it’s difficult to know what the current value is.
-* Breaks the Dependency Inversion Principle. Your code ends up depending on concrete global objects instead of abstract interfaces.
-#### EXAMPLE:
-* Instead of global logger for methods of a class, define and pass it during creating class instance. (D in SOLID Principle.)
-```python
-# logger_service.py
-class Logger:
-    def info(self, message):
-        print(f"[INFO] {message}")
 
-# user_service.py
-class UserService:
-    def __init__(self, logger):
-        self.logger = logger
+* ##### ANSWER:
+  * Creates implicit coupling between parts of the code and functions or classes that use it depend on it, but you can’t see that from their interface.
+  * Tests can affect each other — you can’t easily reset or isolate behavior.
+  * Because any part of the program can modify the global state at any time, it’s difficult to know what the current value is.
+  * Breaks the Dependency Inversion Principle. Your code ends up depending on concrete global objects instead of abstract interfaces.
+* ##### EXAMPLE:
+  * Instead of global logger for methods of a class, define and pass it during creating class instance.
 
-    def create_user(self, name):
-        self.logger.info(f"Creating user: {name}")
+  <details>
+  <summary>Python Example</summary>
 
-# main.py
-from logger_service import Logger
-from user_service import UserService
+  use
+  ```python
+  # logger_service.py
+  class Logger:
+      def info(self, message):
+          print(f"[INFO] {message}")
 
-logger = Logger()
-user_service = UserService(logger)
-user_service.create_user("Alice")
-```
-instead of <br/>
-```python
-# global_logger.py
-import logging
+  # user_service.py
+  class UserService:
+      def __init__(self, logger):
+          self.logger = logger
 
-logger = logging.getLogger("app")
-logger.setLevel(logging.INFO)
+      def create_user(self, name):
+          self.logger.info(f"Creating user: {name}")
 
-def log_info(message):
-    logger.info(message)
+  # main.py
+  from logger_service import Logger
+  from user_service import UserService
 
-# user_service.py
-from global_logger import log_info
+  logger = Logger()
+  user_service = UserService(logger)
+  user_service.create_user("Alice")
+  ```
+  instead of <br/>
+  ```python
+  # global_logger.py
+  import logging
 
-def create_user(name):
-    log_info(f"Creating user: {name}")
-    # ... create user logic ...
+  logger = logging.getLogger("app")
+  logger.setLevel(logging.INFO)
 
-# main.py
-from user_service import create_user
+  def log_info(message):
+      logger.info(message)
 
-create_user("Alice")  # Logs somewhere...
-```
+  # user_service.py
+  from global_logger import log_info
+
+  def create_user(name):
+      log_info(f"Creating user: {name}")
+      # ... create user logic ...
+
+  # main.py
+  from user_service import create_user
+
+  create_user("Alice")  # Logs somewhere...
+  ```
+  </details>
 
 #### Inversion of Control
 Tell me about Inversion of Control and how it improves the design of code.<br/>
 [Resources](design-patterns/inversion-of-control.md)
-#### ANSWER:
-* In Inversion of Control, you give up the control to when and how to create objects, call methods, and manage the flow. to another part of the system — often a framework, container, or external configuration.
-* Reduce coupling (classes don’t depend tightly on each other), Improve flexibility (you can swap implementations easily), Make testing easier (you can inject fake/mock objects).
-* For example, in Django you don’t write the main loop — the framework calls your view functions when a request comes in.
-#### EXAMPLE:
-* You don't create dependency in another class. you create an instance of it outside of the class, then pass it to the class. You can change the instance of dependency later because it's outside of the class. (D in SOLID Principle.)
-```python
-class EmailService:
-    def send(self, message):
-        print(f"Sending email: {message}")
+* ##### Answer:
+  * In Inversion of Control, you give up the control to when and how to create objects, call methods, and manage the flow. to another part of the system — often a framework, container, or external configuration.
+  * Reduce coupling (classes don’t depend tightly on each other), Improve flexibility (you can swap implementations easily), Make testing easier (you can inject fake/mock objects).
+  * For example, in Django you don’t write the main loop — the framework calls your view functions when a request comes in.
+* ##### Example:
+  * You don't create a dependency inside another class. Instead, you create an instance of it outside the class and pass it in. This way, you can change the dependency later, since it's managed outside the class.
 
-class UserController:
-    def __init__(self, message_service):
-        # The dependency is injected
-        self.message_service = message_service
+  <details>
+  <summary>Python Example</summary>
 
-    def register_user(self, user):
-        print(f"Registering {user}")
-        self.message_service.send("Welcome!")
+  use
+  ```python
+  class EmailService:
+      def send(self, message):
+          print(f"Sending email: {message}")
 
-# IoC container or framework decides which service to inject
-email_service = EmailService()
-controller = UserController(email_service)
-controller.register_user("Alice")
-```
-instead of <br/>
-```python
-class EmailService:
-    def send(self, message):
-        print(f"Sending email: {message}")
+  class UserController:
+      def __init__(self, message_service):
+          # The dependency is injected
+          self.message_service = message_service
 
-class UserController:
-    def __init__(self):
-        # You create dependencies yourself
-        self.email_service = EmailService()
+      def register_user(self, user):
+          print(f"Registering {user}")
+          self.message_service.send("Welcome!")
 
-    def register_user(self, user):
-        print(f"Registering {user}")
-        self.email_service.send("Welcome!")
+  # IoC container or framework decides which service to inject
+  email_service = EmailService()
+  controller = UserController(email_service)
+  controller.register_user("Alice")
+  ```
+  instead of <br/>
+  ```python
+  class EmailService:
+      def send(self, message):
+          print(f"Sending email: {message}")
 
-controller = UserController()
-controller.register_user("Alice")
-```
+  class UserController:
+      def __init__(self):
+          # You create dependencies yourself
+          self.email_service = EmailService()
+
+      def register_user(self, user):
+          print(f"Registering {user}")
+          self.email_service.send("Welcome!")
+
+  controller = UserController()
+  controller.register_user("Alice")
+  ```
+  </details>
 
 #### Law of Demeter
 The Law of Demeter (the Principle of Least Knowledge) states that each unit should have only limited knowledge about other units and it should only talk to its immediate friends (sometimes stated as "don't talk to strangers").<br/>
