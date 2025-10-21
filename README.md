@@ -279,16 +279,16 @@ Feel free to open a [Discussion](https://github.com/arialdomartini/Back-End-Deve
 #### Globals Are Evil
 Why are global and static objects evil? Can you show it with a code example?
 
-* ##### ANSWER:
+* ##### Answer:
   * Creates implicit coupling between parts of the code and functions or classes that use it depend on it, but you can’t see that from their interface.
   * Tests can affect each other — you can’t easily reset or isolate behavior.
   * Because any part of the program can modify the global state at any time, it’s difficult to know what the current value is.
   * Breaks the Dependency Inversion Principle. Your code ends up depending on concrete global objects instead of abstract interfaces.
-* ##### EXAMPLE:
+* ##### Example:
   * Instead of global logger for methods of a class, define and pass it during creating class instance.
 
   <details>
-  <summary>Python Example</summary>
+  <summary>Python</summary>
 
   use
   ```python
@@ -349,7 +349,7 @@ Tell me about Inversion of Control and how it improves the design of code.<br/>
   * You don't create a dependency inside another class. Instead, you create an instance of it outside the class and pass it in. This way, you can change the dependency later, since it's managed outside the class.
 
   <details>
-  <summary>Python Example</summary>
+  <summary>Python</summary>
 
   use
   ```python
@@ -396,13 +396,184 @@ The Law of Demeter (the Principle of Least Knowledge) states that each unit shou
 Would you write code violating this principle, show why it is a bad design and then fix it?<br/>
 [Resources](design-patterns/law-of-demeter.md)
 
+* Answer
+  * The Law of Demeter (LoD), also known as the principle of least knowledge, is a design guideline for object-oriented programming that promotes low coupling between classes
+  * A method of an object should only call methods of:
+    1. The object itself
+    2. Its own fields (member variables)
+    3. Objects passed as arguments
+    4. Objects it creates locally
+  * It should not call methods of objects returned by other methods (avoid long chains of calls like a.getB().getC().doSomething()).
+  * Avoid method chains and unnecessary knowledge of other objects’ internals.
+* Why it matters
+  * Reduces coupling: Objects don’t need to know the internal structure of other objects.
+  * Easier maintenance: Changing internal structures of one class won’t break unrelated classes.
+  * Improves readability: Methods stay concise and focused.
+* Example
+  * A Person should only interacts with Car, not its internal engine.
+  <details>
+  <summary>Python</summary>
+  
+  use
+  ```python
+  class Engine:
+      def start(self):
+          print("Engine started")
+
+  class Car:
+      def __init__(self):
+          self.engine = Engine()
+      
+      def start_engine(self):
+          self.engine.start()  # Car handles its own engine
+
+  class Person:
+      def drive(self, car: Car):
+          car.start_engine()  # Only interacts with Car, not Engine
+
+  ```
+  instead of
+  ```python
+  class Engine:
+      def start(self):
+          print("Engine started")
+
+  class Car:
+      def __init__(self):
+          self.engine = Engine()
+
+  class Person:
+      def drive(self, car: Car):
+          car.engine.start()  # Directly accessing engine → violates LoD
+  ```
+  </details>
+
 #### Active-Record
 Active-Record is the design pattern that promotes objects to include functions such as Insert, Update, and Delete, and properties that correspond to the columns in some underlying database table. In your opinion and experience, which are the limits and pitfalls of the this pattern?<br/>
 [Resources](design-patterns/active-record.md)
 
+* Answer
+  * Active Record is a popular design pattern used in software development, especially in object-relational mapping (ORM) frameworks, to simplify working with databases.
+  * In the Active Record pattern, a class directly represents a table in a database, and each instance of that class represents a row in the table.
+  * The class both holds data and contains methods to interact with the database (like saving, updating, deleting, querying).
+  * Each object maps to a table row
+  * CRUD operations are built into the object:
+    create(), read(), update(), delete()
+  * No need for separate data-access layers—the model object handles it.
+  * Encourages convention over configuration, meaning database table names and fields often match class and attribute names.
+* ##### Pros & Cons
+  * Pros
+    * Very simple and intuitive for small apps.
+    * Easy to understand because objects and database rows are linked 1:1.
+    * Quick to develop CRUD functionality.
+  * Cons
+    * Can lead to fat models if business logic grows too much.
+    * Not ideal for complex queries or multi-table operations—can encourage inefficient database access.
+    * **Mixes Domain Logic with Database Operations**: A model class (e.g., User) represents a database table. That same class has methods to read/write data (save(), delete(), find()). That same class often also contains business logic (calculate_discount(), can_login(), etc.).
+    * Harder to test business logic in isolation: You need a database to test even simple logic.
+* ##### Example
+  <details>
+    <summary>Python</summary>
+
+    ```python
+    class User(ActiveRecord):
+        # Suppose this maps to a "users" table with columns id, name, email
+        pass
+
+    # Creating a new user
+    user = User(name="Alice", email="alice@example.com")
+    user.save()  # Inserts into the database
+
+    # Querying users
+    user = User.find(1)  # Get user with id=1
+
+    # Updating
+    user.name = "Alice Smith"
+    user.save()  # Updates the row
+
+    # Deleting
+    user.delete()
+    ```
+  </details>
+* ##### Use Active Record when:
+  * Your app is simple — mostly CRUD (Create, Read, Update, Delete) operations.
+  * Your domain logic is light — few business rules or calculations.
+  * You want speed of development — less boilerplate, quick to build and understand.
+  * You don’t need strong separation between layers — you’re fine with models that talk directly to the database.
+  * You’re using a framework that supports it naturally.
+  * Example scenarios:
+    * Small web apps (blogs, simple dashboards, content sites)
+    * Prototypes and MVPs
+    * Admin panels or tools where database and logic are tightly aligned
+
+
 #### Data-Mapper
 Data-Mapper is a design pattern that promotes the use of a layer of Mappers that moves data between objects and a database while keeping them independent of each other and the mapper itself. On the contrary, in Active-Record objects directly incorporate operations for persisting themselves to a database, and properties corresponding to the underlying database tables. Do you have an opinion on those patterns? When would you use one instead of the other?
 
+* ##### Answer
+  * The Data Mapper is an Object-Relational Mapping (ORM) design pattern — often seen as the opposite of Active Record.
+  * Its goal is to separate business logic from database access, leading to cleaner, more modular code.
+  * In the Data Mapper pattern, your domain objects (models) only hold data and business logic — they don’t know anything about the database.
+  * A separate mapper (or repository) handles the actual database operations (insert, update, select, delete).
+  * > Domain objects = Pure business logic </br>
+    > Mapper = Translates between objects and the database
+* ##### Pros & Cons
+  * Pros
+    * Clean separation of concerns — domain logic and persistence are independent.
+    * Easier testing — you can test business logic without a database.
+    * More flexible — easy to switch database engines or persistence strategies.
+    * Works great for complex domains or enterprise-level systems.
+  * Cons
+    * More setup and boilerplate (extra Mapper/Repository classes).
+    * Slightly harder for small CRUD-style applications.
+* ##### Example
+  * `User` contains only business rules (no SQL, no persistence code) and  `UserMapper` handles database operations.
+  <details>
+    <summary>Python</summary>
+
+    ```python
+    # Domain model (pure business logic)
+    class User:
+        def __init__(self, id, name, email):
+            self.id = id
+            self.name = name
+            self.email = email
+        
+        def is_premium(self):
+            return self.email.endswith("@premium.com")
+
+    # Data Mapper
+    class UserMapper:
+        def __init__(self, db):
+            self.db = db
+
+        def find(self, user_id):
+            row = self.db.query("SELECT * FROM users WHERE id = ?", (user_id,))
+            return User(**row)
+
+        def save(self, user):
+            self.db.execute(
+                "UPDATE users SET name = ?, email = ? WHERE id = ?",
+                (user.name, user.email, user.id)
+            )
+
+  ```
+  </details>
+* ##### Use Data Mapper when:
+  * Your domain logic is complex — many business rules, workflows, or validation layers.
+  * You want a clean separation between business and persistence layers.
+  * You plan to switch databases or support multiple persistence backends.
+  * You need testability — easily test domain logic without touching a real DB.
+  * You’re building a large system with multiple bounded contexts (e.g., DDD or microservices):
+    * You can replace or evolve databases without touching business rules
+    * Domain logic stays pure and testable
+  * Example scenarios:
+    * Enterprise systems (e.g., banking, billing, logistics)
+    * Applications using Domain-Driven Design (DDD)
+    * Microservice backends where persistence can vary
+    * Systems needing unit tests without DB access
+
+  
 #### Billion Dollar Mistake
 [Tony Hoare](https://en.m.wikipedia.org/wiki/Tony_Hoare) who invented the null reference once said "*I call it my billion-dollar mistake*" since it led to "*innumerable errors, vulnerabilities, and system crashes, which have probably caused a billion dollars of pain and damage in the last forty years*".
 

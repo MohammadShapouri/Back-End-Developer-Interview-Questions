@@ -22,7 +22,7 @@
         * With DIP high-level modules don’t care which low-level implementation is used. You can easily swap or mock implementations. Code is more flexible, reusable, and maintainable.
     * ###### EXAMPLE:
         <details>
-            <summary>Python Example</summary>
+            <summary>Python</summary>
 
         use <br/>
         ```python
@@ -91,7 +91,7 @@
         * Interface Injection – Less common in Python; class implements an interface to accept dependencies.
     * ###### Example
         <details>
-            <summary>Python Example</summary>
+            <summary>Python</summary>
 
         use
         ```python
