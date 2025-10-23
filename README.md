@@ -868,8 +868,7 @@ automatically changes behavior — maybe you didn’t want that for all of them.
 | Feature | Inheritance | Composition |
 |----------|----------------|----------------|
 | **Adding new logger type** | Modify base or subclass | Add new class, no changes elsewhere |
-| **Combining loggers** | Difficult (mixins) | Easy (CompositeLogger) |
-| **Swapping at runtime** | Not possible | One line change |
+| **Combining loggers** | Difficult | Easy |
 | **Testing** | Hard — must subclass | Easy — inject fake logger |
 | **Coupling** | Tight (shared base) | Loose (independent objects) |
 | **Flexibility** | Rigid </br> Hard to reorganize once you’re born. | Dynamic </br> You can combine them in endless ways. |
