@@ -400,7 +400,7 @@ The Law of Demeter (the Principle of Least Knowledge) states that each unit shou
 Would you write code violating this principle, show why it is a bad design and then fix it?<br/>
 [Resources](design-patterns/law-of-demeter.md)
 
-* Answer
+* ##### Answer
   * The Law of Demeter (LoD), also known as the principle of least knowledge, is a design guideline for object-oriented programming that promotes low coupling between classes
   * A method of an object should only call methods of:
     1. The object itself
@@ -409,11 +409,11 @@ Would you write code violating this principle, show why it is a bad design and t
     4. Objects it creates locally
   * It should not call methods of objects returned by other methods (avoid long chains of calls like a.getB().getC().doSomething()).
   * Avoid method chains and unnecessary knowledge of other objects’ internals.
-* Why it matters
+* ##### Why it matters
   * Reduces coupling: Objects don’t need to know the internal structure of other objects.
   * Easier maintenance: Changing internal structures of one class won’t break unrelated classes.
   * Improves readability: Methods stay concise and focused.
-* Example
+* ##### Example
   * A Person should only interacts with Car, not its internal engine.
   <details>
   <summary>Python</summary>
@@ -457,7 +457,7 @@ Would you write code violating this principle, show why it is a bad design and t
 Active-Record is the design pattern that promotes objects to include functions such as Insert, Update, and Delete, and properties that correspond to the columns in some underlying database table. In your opinion and experience, which are the limits and pitfalls of the this pattern?<br/>
 [Resources](design-patterns/active-record.md)
 
-* Answer
+* ##### Answer
   * Active Record is a popular design pattern used in software development, especially in object-relational mapping (ORM) frameworks, to simplify working with databases.
   * In the Active Record pattern, a class directly represents a table in a database, and each instance of that class represents a row in the table.
   * The class both holds data and contains methods to interact with the database (like saving, updating, deleting, querying).
