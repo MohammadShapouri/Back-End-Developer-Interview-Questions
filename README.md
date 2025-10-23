@@ -274,8 +274,10 @@ Feel free to open a [Discussion](https://github.com/arialdomartini/Back-End-Deve
 
 
 
-
+#
+#
 ### [[↑]](#toc) <a name='patterns'>Questions about Design Patterns:</a>
+
 #### Globals Are Evil
 Why are global and static objects evil? Can you show it with a code example?
 
@@ -338,6 +340,7 @@ Why are global and static objects evil? Can you show it with a code example?
   ```
   </details>
 
+#
 #### Inversion of Control
 Tell me about Inversion of Control and how it improves the design of code.<br/>
 [Resources](design-patterns/inversion-of-control.md)
@@ -391,6 +394,7 @@ Tell me about Inversion of Control and how it improves the design of code.<br/>
   ```
   </details>
 
+#
 #### Law of Demeter
 The Law of Demeter (the Principle of Least Knowledge) states that each unit should have only limited knowledge about other units and it should only talk to its immediate friends (sometimes stated as "don't talk to strangers").<br/>
 Would you write code violating this principle, show why it is a bad design and then fix it?<br/>
@@ -448,6 +452,7 @@ Would you write code violating this principle, show why it is a bad design and t
   ```
   </details>
 
+#
 #### Active-Record
 Active-Record is the design pattern that promotes objects to include functions such as Insert, Update, and Delete, and properties that correspond to the columns in some underlying database table. In your opinion and experience, which are the limits and pitfalls of the this pattern?<br/>
 [Resources](design-patterns/active-record.md)
@@ -506,7 +511,7 @@ Active-Record is the design pattern that promotes objects to include functions s
     * Prototypes and MVPs
     * Admin panels or tools where database and logic are tightly aligned
 
-
+#
 #### Data-Mapper
 Data-Mapper is a design pattern that promotes the use of a layer of Mappers that moves data between objects and a database while keeping them independent of each other and the mapper itself. On the contrary, in Active-Record objects directly incorporate operations for persisting themselves to a database, and properties corresponding to the underlying database tables. Do you have an opinion on those patterns? When would you use one instead of the other?
 
@@ -573,41 +578,186 @@ Data-Mapper is a design pattern that promotes the use of a layer of Mappers that
     * Microservice backends where persistence can vary
     * Systems needing unit tests without DB access
 
-  
+#
 #### Billion Dollar Mistake
 [Tony Hoare](https://en.m.wikipedia.org/wiki/Tony_Hoare) who invented the null reference once said "*I call it my billion-dollar mistake*" since it led to "*innumerable errors, vulnerabilities, and system crashes, which have probably caused a billion dollars of pain and damage in the last forty years*".
 
 Would you discuss the techniques to avoid it, such as the Null Object Pattern introduced by the GOF book, or Option types?
 
+  * ##### Answer
+    * ##### Null Object Pattern
+      * ###### Description
+        * The Null Object Pattern replaces None with an object that implements the expected interface but does nothing. This avoids explicit None checks everywhere.
+      * ###### Example
+        <details>
+          <summary>Python Example</summary>
+
+          ```python
+          from abc import ABC, abstractmethod
+
+          # Define the Logger interface
+          class Logger(ABC):
+              @abstractmethod
+              def log(self, message: str):
+                  pass
+
+          # Real logger writes to console
+          class ConsoleLogger(Logger):
+              def log(self, message: str):
+                  print(f"[LOG] {message}")
+
+          # Null logger does nothing
+          class NullLogger(Logger):
+              def log(self, message: str):
+                  pass
+
+          # Application code
+          def process_data(data, logger: Logger):
+              logger.log("Starting data processing")
+              result = data.upper()
+              logger.log(f"Processed data: {result}")
+              return result
+
+          # Usage
+          real_logger = ConsoleLogger()
+          null_logger = NullLogger()
+
+          process_data("hello world", real_logger)
+          process_data("hello world", null_logger)  # No need for if logger is not None
+
+          ```
+        </details>
+    * ##### Option / Maybe Types (Algebraic Data Types)
+      * ###### Description
+        * Languages like Scala, Rust, and Haskell use Option (or Maybe) types instead of null. Python doesn’t have a built-in Option type
+      * ###### Example
+        * Python doesn’t have a built-in Option type but it can be emulated
+          <details>
+            <summary>Python Example</summary>
+
+          ```python
+          from typing import Generic, TypeVar, Callable
+
+          T = TypeVar("T") # Defining a type variable stored in the Python variable T, and its internal name (used for type hints) is "T". T can represent any type.
+
+          class Option(Generic[T]):
+              """
+              - Option wraps a value that might or might not be present. 
+              - _value is either some actual value (like "Alice") or None.
+              - Generic[T] means the class is generic over type T. That is, the class can hold or operate on any type, but it should keep that type consistent inside it.
+              """
+              def __init__(self, value: T = None):
+                  self._value = value
+
+              def is_some(self):
+                  return self._value is not None
+
+              def is_none(self):
+                  return self._value is None
+
+              def map(self, func: Callable[[T], T]):
+                  """
+                  - map() applies a function to the value only if it exists.
+                  - we can safely transform it without worrying about None.
+                  """
+                  if self.is_some():
+                      return Option(func(self._value))
+                  return Option(None)
+
+              def unwrap_or(self, default):
+                  return self._value if self.is_some() else default
+
+          # Example usage
+          def find_user(user_id) -> Option[str]:
+              users = {1: "Alice", 2: "Bob"}
+              return Option(users.get(user_id))
+
+          user_name = find_user(1).unwrap_or("Unknown")
+          print(user_name)  # Alice
+
+          user_name = find_user(3).unwrap_or("Unknown")
+          print(user_name)  # Unknown
+
+          # Using map to safely transform
+          user_name_upper = find_user(2).map(str.upper).unwrap_or("UNKNOWN")
+          print(user_name_upper)  # BOB
+          ```
+          </details>
+    * ##### Language-Level Features
+      * ###### Description
+        * Many modern languages now offer nullable vs non-nullable types
+      * ###### Example
+        * TypeScript: `string | null` with strict null checks
+    * ##### Defensive Programming / Early Checks
+      * Even if nulls exist in a language:
+        1. Fail fast: Validate inputs immediately. Instead of propagating None, immediately raise exceptions or provide defaults.
+        2. Immutable objects: Reduce the chance that a reference becomes null over time.
+        3. Assertions: Ensure important objects are non-null at construction.
+            <details>
+              <summary>Python Example</summary>
+
+            ```python
+            from typing import Optional
+
+            def process(text: Optional[str]):
+                assert text is not None, "text cannot be None"
+                print(text.upper())
+            ```
+            </details>
+        4. Default Parameters
+            <details>
+              <summary>Python Example</summary>
+
+            ```python
+            def greet(name=None):
+                name = name or "Guest"
+                print(f"Hello, {name}!")
+
+            greet()  # Hello, Guest!
+            ```
+            </details>
+
+
+#
 #### Inheritance vs Composition
 Many state that, in Object-Oriented Programming, composition is often a better option than inheritance. What's you opinion?
 
+#
 #### Anti-Corruption Layer
 What is an Anti-corruption Layer?
 
+#
 #### Singleton
 Singleton is a design pattern that restricts the instantiation of a class to one single object. Writing a Thread-Safe Singleton class is not so obvious. Would you try?
 
+#
 #### Data Abstraction
 The ability to change implementation without affecting clients is called Data Abstraction. Produce an example violating this property, then fix it.
 
+#
 #### Don't Repeat Yourself
 Write a snippet of code violating the Don't Repeat Yourself (DRY) principle. Then, fix it.
 
+#
 #### Dependency Hell
 How would you deal with Dependency Hell?
 
+#
 #### Goto is Evil
 Is goto evil? You may have heard of the famous paper "Go To Statement Considered Harmful" by Edsger Dijkstra, in which he criticized the use of the `goto` statement and advocated structured programming instead. The use of `goto` has always been controversial, so much that even Dijkstra's letter was criticized with articles such as "'GOTO Considered Harmful' Considered Harmful". What's your opinion on the use of `goto`?
 
+#
 #### Robustness Principle
 The robustness principle is a general design guideline for software that recommends "*be conservative in what you send, be liberal in what you accept*". It is often reworded as "*be a tolerant reader and a careful writer*". Would you like to discuss the rationale of this principle?
 
+#
 #### Separation of Concerns
 Separation of Concerns is a design principle for separating a computer program into distinct areas, each one addressing a separate concern. There are a lot of different mechanisms for achieving Separation of Concerns (use of objects, functions, modules, or patterns such as MVC and the like). Would you discuss this topic?
 
-
+#
+#
 ### [[↑]](#toc) <a name='design'>Questions about Code Design:</a>
+
 
 #### High Cohesion, Loose Coupling
 It is often said that one of the most important goals in Object-Oriented Design (and code design in general) is to have High Cohesion and Loose Coupling. What does it mean? Why is it that important and how is it achieved?
