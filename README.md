@@ -722,6 +722,160 @@ Would you discuss the techniques to avoid it, such as the Null Object Pattern in
 #### Inheritance vs Composition
 Many state that, in Object-Oriented Programming, composition is often a better option than inheritance. What's you opinion?
 
+* ##### Answer
+  * ##### Inheritance:
+    * ###### Description
+      * Inheritance models an “is-a” relationship.
+      * You reuse behavior by extending a base class.
+    * ###### Example
+      <details>
+        <summary>Python Example</summary>
+
+      Imagine use wrote the following code:
+
+      ```python
+      class BaseService:
+          def log(self, msg):
+              print(f"[LOG] {msg}")
+
+      class PaymentService(BaseService):
+          def process(self):
+              self.log("Processing payment")
+              # ... payment logic ...
+
+      class OrderService(BaseService):
+          def create(self):
+              self.log("Creating order")
+              # ... order logic ...
+      ```
+
+      `We want logs saved in a file.`</br>
+      `we need different kinds of logs:`</br>
+        1. `Info logs (normal)`</br>
+        2. `Error logs (to a separate file)`</br>
+
+      So you write:
+
+      ```python
+      class BaseService:
+          def log(self, msg, level="info"):
+              filename = "error.log" if level == "error" else "app.log"
+              with open(filename, "a") as f:
+                  f.write(f"[{level.upper()}] {msg}\n")
+
+      class PaymentService(BaseService):
+          def process(self):
+              try:
+                  self.log("Processing payment")
+                  raise ValueError("Card declined!")
+              except Exception as e:
+                  self.log(str(e), level="error")
+      ```
+      Every subclass must remember to call it properly.
+      It’s working, but the base class keeps growing and becoming a God object — doing too much and every single service that inherited BaseService
+automatically changes behavior — maybe you didn’t want that for all of them.
+
+      Now someone says:</br>
+        `“We also want logs sent to a remote server.”`
+
+      You write:
+        ```python
+        class RemoteLoggingService(BaseService):
+            def log(self, msg, level="info"):
+                super().log(msg, level)  # still writes to file
+                self.send_to_server(msg, level)
+
+            def send_to_server(self, msg, level):
+                print(f"Sending to server: {msg}")
+        ```
+      
+      But what if another subclass wanted both remote and console?
+      You can’t mix and match easily — inheritance doesn’t compose behaviors well.
+      </details>
+  * ##### Inheritance:
+    * ###### Description
+      * Composition models a “has-a” relationship.
+      * You build complex behavior by combining smaller objects.
+    * ###### Example
+      <details>
+        <summary>Python Example</summary>
+        This defines a common interface.</br>
+        Every logger (console, file, remote) will follow this contract.
+
+        ```python
+        from abc import ABC, abstractmethod
+
+        class Logger(ABC):
+            @abstractmethod
+            def log(self, msg: str):
+                pass
+        ```
+
+        Now let's create different logger implementations
+        ```python
+        class ConsoleLogger(Logger):
+            def log(self, msg: str):
+                print(f"[CONSOLE] {msg}")
+
+        class FileLogger(Logger):
+            def __init__(self, filename="app.log"):
+                self.filename = filename
+
+            def log(self, msg: str):
+                with open(self.filename, "a") as f:
+                    f.write(f"[FILE] {msg}\n")
+
+        class RemoteLogger(Logger):
+            def log(self, msg: str):
+                print(f"[REMOTE] Sending log to server: {msg}")
+        ```
+        then
+        ```python
+        class PaymentService:
+            def __init__(self, logger: Logger):
+                self.logger = logger
+
+            def process(self):
+                self.logger.log("Processing payment...")
+                # Imagine payment logic here
+                self.logger.log("Payment successful!")
+
+        class OrderService:
+            def __init__(self, logger: Logger):
+                self.logger = logger
+
+            def create(self):
+                self.logger.log("Creating order...")
+                # Imagine order logic here
+                self.logger.log("Order created successfully!")
+        ```
+        or
+        ```python
+        class CompositeLogger(Logger):
+            def __init__(self, *loggers: Logger):
+                self.loggers = loggers
+
+            def log(self, msg: str):
+                for logger in self.loggers:
+                    logger.log(msg)
+
+        combo_logger = CompositeLogger(ConsoleLogger(), FileLogger(), RemoteLogger())
+        payment_service = PaymentService(combo_logger)
+        payment_service.process()
+        ```
+      </details>
+      
+| Feature | Inheritance | Composition |
+|----------|----------------|----------------|
+| **Adding new logger type** | Modify base or subclass | Add new class, no changes elsewhere |
+| **Combining loggers** | Difficult (mixins) | Easy (CompositeLogger) |
+| **Swapping at runtime** | Not possible | One line change |
+| **Testing** | Hard — must subclass | Easy — inject fake logger |
+| **Coupling** | Tight (shared base) | Loose (independent objects) |
+| **Flexibility** | Rigid </br> Hard to reorganize once you’re born. | Dynamic </br> You can combine them in endless ways. |
+|  | Inheritance is fine for simple hierarchies, but overuse creates tight coupling and fragile architectures. | Composition leads to cleaner, more maintainable, and more testable code — especially in large systems or microservices. |
+
+
 #
 #### Anti-Corruption Layer
 What is an Anti-corruption Layer?
